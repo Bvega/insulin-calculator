@@ -1,0 +1,25 @@
+# Personal Use License
+
+Copyright (c) 2026
+
+This software is provided for personal, non-commercial use only.
+
+## Terms
+
+1. **Personal Use**: You may use this software for your own personal diabetes management.
+
+2. **Modification**: You may modify this software for your own personal use.
+
+3. **No Redistribution**: You may not distribute, sell, or share this software without explicit permission.
+
+4. **No Warranty**: This software is provided "as is" without warranty of any kind.
+
+5. **Medical Disclaimer**: This software is a tool to assist with following a doctor-prescribed insulin protocol. It is NOT a replacement for medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider.
+
+## Limitation of Liability
+
+In no event shall the authors be liable for any claim, damages, or other liability arising from the use of this software.
+
+---
+
+For questions about licensing, please open an issue in this repository.

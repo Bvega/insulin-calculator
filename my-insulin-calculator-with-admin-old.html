@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Insulin Dosage Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4a6fa5 0%, #2c4d7a 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .insulin-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .warning-box strong {
+            color: #856404;
+        }
+        
+        .calculator {
+            padding: 25px;
+        }
+        
+        .basaglar-section {
+            background: #e8f4fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #b8d4f0;
+        }
+        
+        .basaglar-dose {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c4d7a;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .header p {
+                font-size: 14px;
+            }
+            
+            .insulin-badge {
+                font-size: 12px;
+                padding: 4px 12px;
+            }
+            
+            .warning-box {
+                margin: 15px;
+                padding: 12px;
+                font-size: 13px;
+            }
+            
+            .calculator {
+                padding: 15px;
+            }
+            
+            .basaglar-section {
+                padding: 15px;
+            }
+            
+            .basaglar-dose {
+                font-size: 28px;
+            }
+            
+            .scenario-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .scenario-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+            
+            .btn {
+                padding: 14px 20px;
+                font-size: 16px;
+            }
+            
+            .dosage-display {
+                font-size: 32px;
+            }
+            
+            .result-box {
+                padding: 15px;
+            }
+            
+            .dosage-details {
+                padding: 15px;
+            }
+            
+            .table-section {
+                padding: 15px;
+            }
+            
+            th, td {
+                padding: 10px 5px;
+                font-size: 14px;
+            }
+            
+            .footer {
+                padding: 15px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .header p {
+                font-size: 13px;
+            }
+            
+            .dosage-display {
+                font-size: 28px;
+            }
+            
+            .basaglar-dose {
+                font-size: 24px;
+            }
+            
+            th, td {
+                padding: 8px 4px;
+                font-size: 12px;
+            }
+            
+            .scenario-btn {
+                font-size: 13px;
+                padding: 10px;
+            }
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: #4a6fa5;
+            outline: none;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4a6fa5 0%, #2c4d7a 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-weight: 600;
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 111, 165, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+        
+        .result-box {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 2px solid #e9ecef;
+            display: none;
+        }
+        
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .dosage-display {
+            font-size: 42px;
+            font-weight: 700;
+            text-align: center;
+            color: #4a6fa5;
+            margin: 15px 0;
+        }
+        
+        .dosage-details {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .special-note {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .table-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        
+        th {
+            background-color: #4a6fa5;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .meal-time {
+            font-weight: 600;
+            color: #2c4d7a;
+        }
+        
+        .highlight {
+            background-color: #e8f4fd !important;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 14px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .scenario-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .scenario-btn {
+            flex: 1;
+            padding: 12px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .scenario-btn.active {
+            background: #4a6fa5;
+            color: white;
+        }
+        
+        .time-input {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        .time-input.show {
+            display: block;
+        }
+        
+        /* Admin Panel Styles */
+        .admin-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            z-index: 999;
+        }
+        
+        .admin-btn:hover {
+            background: #5a6268;
+            transform: scale(1.05);
+        }
+        
+        .admin-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .admin-overlay.show {
+            display: block;
+        }
+        
+        .admin-panel {
+            background: white;
+            max-width: 900px;
+            margin: 30px auto;
+            border-radius: 15px;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .admin-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+        
+        .pin-section {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .pin-input {
+            font-size: 24px;
+            padding: 15px;
+            width: 200px;
+            text-align: center;
+            border: 2px solid #e1e5eb;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .admin-content {
+            display: none;
+        }
+        
+        .admin-content.show {
+            display: block;
+        }
+        
+        .admin-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .admin-section h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .admin-field {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .admin-field label {
+            display: block;
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .admin-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .admin-actions button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-save {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-save:hover {
+            background: #218838;
+        }
+        
+        .btn-reset {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            background: #c82333;
+        }
+        
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            border-left: 4px solid #28a745;
+        }
+        
+        .success-message.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-panel {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-actions {
+                flex-direction: column;
+            }
+            
+            .admin-btn {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>My Insulin Dosage Calculator</h1>
+            <p>Based on Dr. Smith's exact insulin table</p>
+            <div class="insulin-badge">Basaglar + Humalog Protocol</div>
+        </div>
+        
+        <div class="warning-box">
+            <strong>DOCTOR'S PROTOCOL:</strong> Take Humalog 10-15 minutes prior to eating. If forgotten during meal, take base dose only. If >1 hour after eating, use correction scale only.
+        </div>
+        
+        <div class="calculator">
+            <!-- Basaglar Section -->
+            <div class="basaglar-section">
+                <h3>Daily Basaglar (Long-Acting)</h3>
+                <div class="basaglar-dose">46 units</div>
+                <p style="text-align: center; color: #666;">Take once daily at the same time</p>
+            </div>
+            
+            <!-- Humalog Calculator -->
+            <h3>Humalog (Rapid-Acting) Calculator</h3>
+            
+            <div class="scenario-buttons">
+                <button class="scenario-btn active" onclick="setScenario('normal')">Normal Pre-Meal Dose</button>
+                <button class="scenario-btn" onclick="setScenario('forgotten')">Forgotten Dose</button>
+            </div>
+            
+            <div id="normal-scenario">
+                <div class="input-section">
+                    <div class="input-group">
+                        <label for="bloodSugar">Current Blood Sugar (mg/dL)</label>
+                        <input type="number" id="bloodSugar" min="50" max="500" placeholder="e.g., 150" value="150">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="mealTime">Meal Time</label>
+                        <select id="mealTime">
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="calculateHumalog()">Calculate Humalog Dose</button>
+            </div>
+            
+            <div id="forgotten-scenario" style="display: none;">
+                <div class="input-section">
+                    <div class="input-group">
+                        <label for="forgottenBloodSugar">Current Blood Sugar (mg/dL)</label>
+                        <input type="number" id="forgottenBloodSugar" min="50" max="500" placeholder="e.g., 200">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="forgottenMealTime">Original Meal Time</label>
+                        <select id="forgottenMealTime">
+                            <option value="breakfast">Breakfast</option>
+                            <option value="lunch">Lunch</option>
+                            <option value="dinner">Dinner</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>When did you realize you forgot?</label>
+                    <div style="display: flex; gap: 15px; margin-top: 10px;">
+                        <label style="flex: 1;">
+                            <input type="radio" name="forgottenTime" value="during" checked> During the meal
+                        </label>
+                        <label style="flex: 1;">
+                            <input type="radio" name="forgottenTime" value="after"> More than 1 hour after eating
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="calculateForgottenDose()">Calculate Dose for Forgotten Insulin</button>
+            </div>
+            
+            <div id="result" class="result-box">
+                <h3>Recommended Humalog Dosage</h3>
+                <div class="dosage-display" id="dosageAmount">0 units</div>
+                
+                <div class="dosage-details">
+                    <h4>Calculation Details:</h4>
+                    <p id="calculationDetails">Details will appear here</p>
+                    <div id="specialInstructions"></div>
+                </div>
+                
+                <div class="special-note" id="timingNote">
+                    <strong>Timing:</strong> Take 10-15 minutes before eating
+                </div>
+            </div>
+            
+            <!-- Doctor's Table Display -->
+            <div class="table-section">
+                <h3>Your Doctor's Humalog Table</h3>
+                <div class="table-container">
+                    <table id="humalogTable">
+                        <thead>
+                            <tr>
+                                <th>Sugar Reading</th>
+                                <th>Breakfast Dose</th>
+                                <th>Lunch Dose</th>
+                                <th>Dinner Dose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Table will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 25px;">
+                    <h4>Correction Scale (if &gt;1 hour after eating)</h4>
+                    <div class="table-container">
+                        <table id="correctionTable">
+                            <thead>
+                                <tr>
+                                    <th>Sugar Reading</th>
+                                    <th>Humalog Dose</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Important:</strong> This calculator follows your doctor's specific instructions. Always verify with your glucose monitor and consult your doctor with any concerns.</p>
+            <p>Protocol last updated: Today</p>
+        </div>
+    </div>
+
+    <!-- Admin Panel Button -->
+    <button class="admin-btn" onclick="openAdminPanel()">⚙️ Edit Protocol</button>
+    
+    <!-- Admin Panel Overlay -->
+    <div id="adminOverlay" class="admin-overlay">
+        <div class="admin-panel">
+            <div class="admin-header">
+                <div>
+                    <h2>Protocol Settings</h2>
+                    <p style="opacity: 0.9; font-size: 14px; margin-top: 5px;">Update your doctor's insulin recommendations</p>
+                </div>
+                <button class="admin-close" onclick="closeAdminPanel()">×</button>
+            </div>
+            
+            <!-- PIN Entry Section -->
+            <div id="pinSection" class="pin-section">
+                <h3>Enter PIN to Continue</h3>
+                <p style="color: #6c757d; margin-bottom: 20px;">Default PIN: 1234</p>
+                <input type="password" id="pinInput" class="pin-input" placeholder="Enter PIN" maxlength="6">
+                <br>
+                <button class="btn" onclick="verifyPin()" style="max-width: 200px; margin: 10px auto;">Unlock</button>
+                <p style="color: #6c757d; font-size: 13px; margin-top: 20px;">
+                    💡 Tip: You can change your PIN in the settings below
+                </p>
+            </div>
+            
+            <!-- Admin Content (hidden until PIN verified) -->
+            <div id="adminContent" class="admin-content">
+                
+                <!-- Basaglar Section -->
+                <div class="admin-section">
+                    <h3>💉 Basaglar (Long-Acting) Daily Dose</h3>
+                    <div class="admin-grid">
+                        <div class="admin-field">
+                            <label>Daily Basaglar Dose (units)</label>
+                            <input type="number" id="basaglarDose" min="0" max="100" value="46">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Breakfast Section -->
+                <div class="admin-section">
+                    <h3>🌅 Breakfast Humalog Doses</h3>
+                    <div class="admin-grid">
+                        <div class="admin-field">
+                            <label>70-89 mg/dL</label>
+                            <input type="number" id="breakfast-70-89" min="0" max="100" value="14">
+                        </div>
+                        <div class="admin-field">
+                            <label>90-119 mg/dL</label>
+                            <input type="number" id="breakfast-90-119" min="0" max="100" value="16">
+                        </div>
+                        <div class="admin-field">
+                            <label>120-150 mg/dL (Base)</label>
+                            <input type="number" id="breakfast-120-150" min="0" max="100" value="18">
+                        </div>
+                        <div class="admin-field">
+                            <label>151-200 mg/dL</label>
+                            <input type="number" id="breakfast-151-200" min="0" max="100" value="20">
+                        </div>
+                        <div class="admin-field">
+                            <label>201-250 mg/dL</label>
+                            <input type="number" id="breakfast-201-250" min="0" max="100" value="22">
+                        </div>
+                        <div class="admin-field">
+                            <label>251-300 mg/dL</label>
+                            <input type="number" id="breakfast-251-300" min="0" max="100" value="24">
+                        </div>
+                        <div class="admin-field">
+                            <label>301-350 mg/dL</label>
+                            <input type="number" id="breakfast-301-350" min="0" max="100" value="26">
+                        </div>
+                        <div class="admin-field">
+                            <label>351-400 mg/dL</label>
+                            <input type="number" id="breakfast-351-400" min="0" max="100" value="28">
+                        </div>
+                        <div class="admin-field">
+                            <label>&gt;400 mg/dL</label>
+                            <input type="number" id="breakfast->400" min="0" max="100" value="30">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lunch Section -->
+                <div class="admin-section">
+                    <h3>☀️ Lunch Humalog Doses</h3>
+                    <div class="admin-grid">
+                        <div class="admin-field">
+                            <label>70-89 mg/dL</label>
+                            <input type="number" id="lunch-70-89" min="0" max="100" value="3">
+                        </div>
+                        <div class="admin-field">
+                            <label>90-119 mg/dL</label>
+                            <input type="number" id="lunch-90-119" min="0" max="100" value="5">
+                        </div>
+                        <div class="admin-field">
+                            <label>120-150 mg/dL (Base)</label>
+                            <input type="number" id="lunch-120-150" min="0" max="100" value="7">
+                        </div>
+                        <div class="admin-field">
+                            <label>151-200 mg/dL</label>
+                            <input type="number" id="lunch-151-200" min="0" max="100" value="9">
+                        </div>
+                        <div class="admin-field">
+                            <label>201-250 mg/dL</label>
+                            <input type="number" id="lunch-201-250" min="0" max="100" value="11">
+                        </div>
+                        <div class="admin-field">
+                            <label>251-300 mg/dL</label>
+                            <input type="number" id="lunch-251-300" min="0" max="100" value="12">
+                        </div>
+                        <div class="admin-field">
+                            <label>301-350 mg/dL</label>
+                            <input type="number" id="lunch-301-350" min="0" max="100" value="13">
+                        </div>
+                        <div class="admin-field">
+                            <label>351-400 mg/dL</label>
+                            <input type="number" id="lunch-351-400" min="0" max="100" value="14">
+                        </div>
+                        <div class="admin-field">
+                            <label>&gt;400 mg/dL</label>
+                            <input type="number" id="lunch->400" min="0" max="100" value="15">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dinner Section -->
+                <div class="admin-section">
+                    <h3>🌙 Dinner Humalog Doses</h3>
+                    <div class="admin-grid">
+                        <div class="admin-field">
+                            <label>70-89 mg/dL</label>
+                            <input type="number" id="dinner-70-89" min="0" max="100" value="2">
+                        </div>
+                        <div class="admin-field">
+                            <label>90-119 mg/dL</label>
+                            <input type="number" id="dinner-90-119" min="0" max="100" value="4">
+                        </div>
+                        <div class="admin-field">
+                            <label>120-150 mg/dL (Base)</label>
+                            <input type="number" id="dinner-120-150" min="0" max="100" value="6">
+                        </div>
+                        <div class="admin-field">
+                            <label>151-200 mg/dL</label>
+                            <input type="number" id="dinner-151-200" min="0" max="100" value="8">
+                        </div>
+                        <div class="admin-field">
+                            <label>201-250 mg/dL</label>
+                            <input type="number" id="dinner-201-250" min="0" max="100" value="10">
+                        </div>
+                        <div class="admin-field">
+                            <label>251-300 mg/dL</label>
+                            <input type="number" id="dinner-251-300" min="0" max="100" value="12">
+                        </div>
+                        <div class="admin-field">
+                            <label>301-350 mg/dL</label>
+                            <input type="number" id="dinner-301-350" min="0" max="100" value="14">
+                        </div>
+                        <div class="admin-field">
+                            <label>351-400 mg/dL</label>
+                            <input type="number" id="dinner-351-400" min="0" max="100" value="16">
+                        </div>
+                        <div class="admin-field">
+                            <label>&gt;400 mg/dL</label>
+                            <input type="number" id="dinner->400" min="0" max="100" value="18">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Correction Scale Section -->
+                <div class="admin-section">
+                    <h3>🔧 Correction Scale (>1 hour after eating)</h3>
+                    <div class="admin-grid">
+                        <div class="admin-field">
+                            <label>151-200 mg/dL</label>
+                            <input type="number" id="correction-151-200" min="0" max="100" value="2">
+                        </div>
+                        <div class="admin-field">
+                            <label>201-250 mg/dL</label>
+                            <input type="number" id="correction-201-250" min="0" max="100" value="4">
+                        </div>
+                        <div class="admin-field">
+                            <label>251-300 mg/dL</label>
+                            <input type="number" id="correction-251-300" min="0" max="100" value="6">
+                        </div>
+                        <div class="admin-field">
+                            <label>301-350 mg/dL</label>
+                            <input type="number" id="correction-301-350" min="0" max="100" value="8">
+                        </div>
+                        <div class="admin-field">
+                            <label>351-400 mg/dL</label>
+                            <input type="number" id="correction-351-400" min="0" max="100" value="10">
+                        </div>
+                        <div class="admin-field">
+                            <label>&gt;400 mg/dL</label>
+                            <input type="number" id="correction->400" min="0" max="100" value="12">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PIN Change Section -->
+                <div class="admin-section">
+                    <h3>🔒 Change PIN</h3>
+                    <div class="admin-grid">
+                        <div class="admin-field">
+                            <label>New PIN (4-6 digits)</label>
+                            <input type="password" id="newPin" maxlength="6" placeholder="Leave blank to keep current">
+                        </div>
+                        <div class="admin-field">
+                            <label>Confirm New PIN</label>
+                            <input type="password" id="confirmPin" maxlength="6" placeholder="Leave blank to keep current">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="admin-actions">
+                    <button class="btn-save" onclick="saveSettings()">💾 Save All Changes</button>
+                    <button class="btn-reset" onclick="resetToDefaults()">🔄 Reset to Defaults</button>
+                    <button class="btn-cancel" onclick="closeAdminPanel()">❌ Cancel</button>
+                </div>
+                
+                <!-- Success Message -->
+                <div id="successMessage" class="success-message">
+                    ✅ Settings saved successfully! Your protocol has been updated.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== ADMIN PANEL FUNCTIONS ====================
+        
+        // Default PIN
+        const DEFAULT_PIN = "1234";
+        
+        // Load PIN from localStorage or use default
+        function getStoredPin() {
+            return localStorage.getItem('insulinCalcPin') || DEFAULT_PIN;
+        }
+        
+        // Open admin panel
+        function openAdminPanel() {
+            document.getElementById('adminOverlay').classList.add('show');
+            document.getElementById('pinInput').value = '';
+            document.getElementById('pinInput').focus();
+        }
+        
+        // Close admin panel
+        function closeAdminPanel() {
+            document.getElementById('adminOverlay').classList.remove('show');
+            document.getElementById('pinSection').style.display = 'block';
+            document.getElementById('adminContent').classList.remove('show');
+            document.getElementById('successMessage').classList.remove('show');
+        }
+        
+        // Verify PIN
+        function verifyPin() {
+            const enteredPin = document.getElementById('pinInput').value;
+            const correctPin = getStoredPin();
+            
+            if (enteredPin === correctPin) {
+                document.getElementById('pinSection').style.display = 'none';
+                document.getElementById('adminContent').classList.add('show');
+                loadCurrentSettings();
+            } else {
+                alert('Incorrect PIN. Please try again.');
+                document.getElementById('pinInput').value = '';
+                document.getElementById('pinInput').focus();
+            }
+        }
+        
+        // Allow Enter key to submit PIN
+        document.addEventListener('DOMContentLoaded', function() {
+            const pinInput = document.getElementById('pinInput');
+            if (pinInput) {
+                pinInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        verifyPin();
+                    }
+                });
+            }
+        });
+        
+        // Load current settings into admin form
+        function loadCurrentSettings() {
+            // Load Basaglar
+            const savedBasaglar = localStorage.getItem('basaglarDose');
+            if (savedBasaglar) {
+                document.getElementById('basaglarDose').value = savedBasaglar;
+            }
+            
+            // Load Humalog table values
+            const meals = ['breakfast', 'lunch', 'dinner'];
+            const ranges = ['70-89', '90-119', '120-150', '151-200', '201-250', '251-300', '301-350', '351-400', '>400'];
+            
+            meals.forEach(meal => {
+                ranges.forEach(range => {
+                    const key = `${meal}-${range}`;
+                    const saved = localStorage.getItem(key);
+                    if (saved) {
+                        document.getElementById(key).value = saved;
+                    }
+                });
+            });
+            
+            // Load correction scale
+            const correctionRanges = ['151-200', '201-250', '251-300', '301-350', '351-400', '>400'];
+            correctionRanges.forEach(range => {
+                const key = `correction-${range}`;
+                const saved = localStorage.getItem(key);
+                if (saved) {
+                    document.getElementById(key).value = saved;
+                }
+            });
+        }
+        
+        // Save all settings
+        function saveSettings() {
+            // Check if PIN change is requested
+            const newPin = document.getElementById('newPin').value;
+            const confirmPin = document.getElementById('confirmPin').value;
+            
+            if (newPin || confirmPin) {
+                if (newPin !== confirmPin) {
+                    alert('New PIN and confirmation do not match!');
+                    return;
+                }
+                if (newPin.length < 4) {
+                    alert('PIN must be at least 4 digits!');
+                    return;
+                }
+                localStorage.setItem('insulinCalcPin', newPin);
+            }
+            
+            // Save Basaglar
+            const basaglarValue = document.getElementById('basaglarDose').value;
+            localStorage.setItem('basaglarDose', basaglarValue);
+            
+            // Save Humalog table values
+            const meals = ['breakfast', 'lunch', 'dinner'];
+            const ranges = ['70-89', '90-119', '120-150', '151-200', '201-250', '251-300', '301-350', '351-400', '>400'];
+            
+            meals.forEach(meal => {
+                ranges.forEach(range => {
+                    const key = `${meal}-${range}`;
+                    const value = document.getElementById(key).value;
+                    localStorage.setItem(key, value);
+                });
+            });
+            
+            // Save correction scale
+            const correctionRanges = ['151-200', '201-250', '251-300', '301-350', '351-400', '>400'];
+            correctionRanges.forEach(range => {
+                const key = `correction-${range}`;
+                const value = document.getElementById(key).value;
+                localStorage.setItem(key, value);
+            });
+            
+            // Show success message
+            document.getElementById('successMessage').classList.add('show');
+            
+            // Reload data in calculator
+            loadSavedSettings();
+            updateBasaglarDisplay();
+            populateMainTable();
+            populateCorrectionTable();
+            
+            // Hide success message after 3 seconds
+            setTimeout(() => {
+                document.getElementById('successMessage').classList.remove('show');
+            }, 3000);
+            
+            // Clear PIN fields
+            document.getElementById('newPin').value = '';
+            document.getElementById('confirmPin').value = '';
+        }
+        
+        // Reset to default values
+        function resetToDefaults() {
+            if (!confirm('Are you sure you want to reset all values to defaults? This cannot be undone.')) {
+                return;
+            }
+            
+            // Clear all localStorage
+            localStorage.clear();
+            
+            // Reset PIN to default
+            localStorage.setItem('insulinCalcPin', DEFAULT_PIN);
+            
+            // Reload default values
+            loadDefaultSettings();
+            
+            // Reload calculator
+            loadSavedSettings();
+            updateBasaglarDisplay();
+            populateMainTable();
+            populateCorrectionTable();
+            
+            alert('All settings have been reset to defaults. Default PIN is: 1234');
+            closeAdminPanel();
+        }
+        
+        // Load default settings into form
+        function loadDefaultSettings() {
+            document.getElementById('basaglarDose').value = 46;
+            
+            // Breakfast defaults
+            document.getElementById('breakfast-70-89').value = 14;
+            document.getElementById('breakfast-90-119').value = 16;
+            document.getElementById('breakfast-120-150').value = 18;
+            document.getElementById('breakfast-151-200').value = 20;
+            document.getElementById('breakfast-201-250').value = 22;
+            document.getElementById('breakfast-251-300').value = 24;
+            document.getElementById('breakfast-301-350').value = 26;
+            document.getElementById('breakfast-351-400').value = 28;
+            document.getElementById('breakfast->400').value = 30;
+            
+            // Lunch defaults
+            document.getElementById('lunch-70-89').value = 3;
+            document.getElementById('lunch-90-119').value = 5;
+            document.getElementById('lunch-120-150').value = 7;
+            document.getElementById('lunch-151-200').value = 9;
+            document.getElementById('lunch-201-250').value = 11;
+            document.getElementById('lunch-251-300').value = 12;
+            document.getElementById('lunch-301-350').value = 13;
+            document.getElementById('lunch-351-400').value = 14;
+            document.getElementById('lunch->400').value = 15;
+            
+            // Dinner defaults
+            document.getElementById('dinner-70-89').value = 2;
+            document.getElementById('dinner-90-119').value = 4;
+            document.getElementById('dinner-120-150').value = 6;
+            document.getElementById('dinner-151-200').value = 8;
+            document.getElementById('dinner-201-250').value = 10;
+            document.getElementById('dinner-251-300').value = 12;
+            document.getElementById('dinner-301-350').value = 14;
+            document.getElementById('dinner-351-400').value = 16;
+            document.getElementById('dinner->400').value = 18;
+            
+            // Correction defaults
+            document.getElementById('correction-151-200').value = 2;
+            document.getElementById('correction-201-250').value = 4;
+            document.getElementById('correction-251-300').value = 6;
+            document.getElementById('correction-301-350').value = 8;
+            document.getElementById('correction-351-400').value = 10;
+            document.getElementById('correction->400').value = 12;
+        }
+        
+        // Load saved settings from localStorage into calculator
+        function loadSavedSettings() {
+            const meals = ['breakfast', 'lunch', 'dinner'];
+            const ranges = ['70-89', '90-119', '120-150', '151-200', '201-250', '251-300', '301-350', '351-400', '>400'];
+            
+            meals.forEach(meal => {
+                ranges.forEach(range => {
+                    const key = `${meal}-${range}`;
+                    const saved = localStorage.getItem(key);
+                    if (saved) {
+                        humalogTable[meal][range].dose = parseInt(saved);
+                    }
+                });
+            });
+            
+            // Load correction scale
+            const correctionRanges = ['151-200', '201-250', '251-300', '301-350', '351-400', '>400'];
+            correctionRanges.forEach(range => {
+                const key = `correction-${range}`;
+                const saved = localStorage.getItem(key);
+                if (saved) {
+                    correctionScale[range].dose = parseInt(saved);
+                }
+            });
+        }
+        
+        // Update Basaglar display
+        function updateBasaglarDisplay() {
+            const savedBasaglar = localStorage.getItem('basaglarDose') || '46';
+            document.querySelector('.basaglar-dose').textContent = `${savedBasaglar} units`;
+        }
+        
+        // ==================== ORIGINAL CALCULATOR CODE ====================
+        
+        // Doctor's exact table data
+        const humalogTable = {
+            "breakfast": {
+                "<70": { dose: 0, note: "Treat low sugar" },
+                "70-89": { dose: 14, note: "Normal dose" },
+                "90-119": { dose: 16, note: "Normal dose" },
+                "120-150": { dose: 18, note: "Base dose" },
+                "151-200": { dose: 20, note: "Normal dose" },
+                "201-250": { dose: 22, note: "Normal dose" },
+                "251-300": { dose: 24, note: "Normal dose" },
+                "301-350": { dose: 26, note: "Normal dose" },
+                "351-400": { dose: 28, note: "Normal dose" },
+                ">400": { dose: 30, note: "Normal dose" }
+            },
+            "lunch": {
+                "<70": { dose: 0, note: "Treat low sugar" },
+                "70-89": { dose: 3, note: "Normal dose" },
+                "90-119": { dose: 5, note: "Normal dose" },
+                "120-150": { dose: 7, note: "Base dose" },
+                "151-200": { dose: 9, note: "Normal dose" },
+                "201-250": { dose: 11, note: "Normal dose" },
+                "251-300": { dose: 12, note: "Normal dose" },
+                "301-350": { dose: 13, note: "Normal dose" },
+                "351-400": { dose: 14, note: "Normal dose" },
+                ">400": { dose: 15, note: "Normal dose" }
+            },
+            "dinner": {
+                "<70": { dose: 0, note: "Treat low sugar" },
+                "70-89": { dose: 2, note: "Normal dose" },
+                "90-119": { dose: 4, note: "Normal dose" },
+                "120-150": { dose: 6, note: "Base dose" },
+                "151-200": { dose: 8, note: "Normal dose" },
+                "201-250": { dose: 10, note: "Normal dose" },
+                "251-300": { dose: 12, note: "Normal dose" },
+                "301-350": { dose: 14, note: "Normal dose" },
+                "351-400": { dose: 16, note: "Normal dose" },
+                ">400": { dose: 18, note: "Normal dose" }
+            }
+        };
+
+        // Correction scale for >1 hour after eating
+        const correctionScale = {
+            "<150": { dose: 0, note: "No correction needed" },
+            "151-200": { dose: 2, note: "Correction dose" },
+            "201-250": { dose: 4, note: "Correction dose" },
+            "251-300": { dose: 6, note: "Correction dose" },
+            "301-350": { dose: 8, note: "Correction dose" },
+            "351-400": { dose: 10, note: "Correction dose" },
+            ">400": { dose: 12, note: "Correction dose" }
+        };
+
+        // Get range for blood sugar
+        function getRange(bloodSugar) {
+            if (bloodSugar < 70) return "<70";
+            if (bloodSugar <= 89) return "70-89";
+            if (bloodSugar <= 119) return "90-119";
+            if (bloodSugar <= 150) return "120-150";
+            if (bloodSugar <= 200) return "151-200";
+            if (bloodSugar <= 250) return "201-250";
+            if (bloodSugar <= 300) return "251-300";
+            if (bloodSugar <= 350) return "301-350";
+            if (bloodSugar <= 400) return "351-400";
+            return ">400";
+        }
+
+        // Get correction range
+        function getCorrectionRange(bloodSugar) {
+            if (bloodSugar < 151) return "<150";
+            if (bloodSugar <= 200) return "151-200";
+            if (bloodSugar <= 250) return "201-250";
+            if (bloodSugar <= 300) return "251-300";
+            if (bloodSugar <= 350) return "301-350";
+            if (bloodSugar <= 400) return "351-400";
+            return ">400";
+        }
+
+        // Scenario selection
+        function setScenario(scenario) {
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (scenario === 'normal') {
+                document.querySelector('.scenario-btn:nth-child(1)').classList.add('active');
+                document.getElementById('normal-scenario').style.display = 'block';
+                document.getElementById('forgotten-scenario').style.display = 'none';
+            } else {
+                document.querySelector('.scenario-btn:nth-child(2)').classList.add('active');
+                document.getElementById('normal-scenario').style.display = 'none';
+                document.getElementById('forgotten-scenario').style.display = 'block';
+            }
+            
+            // Clear result
+            document.getElementById('result').classList.remove('show');
+        }
+
+        // Calculate normal pre-meal dose
+        function calculateHumalog() {
+            const bloodSugar = parseInt(document.getElementById('bloodSugar').value);
+            const mealTime = document.getElementById('mealTime').value;
+            
+            if (!bloodSugar || bloodSugar < 20 || bloodSugar > 600) {
+                alert('Please enter a valid blood sugar reading between 20-600 mg/dL');
+                return;
+            }
+            
+            const range = getRange(bloodSugar);
+            const doseInfo = humalogTable[mealTime][range];
+            
+            // Display result
+            document.getElementById('dosageAmount').textContent = `${doseInfo.dose} units`;
+            
+            let details = `Blood Sugar: ${bloodSugar} mg/dL (${range})<br>`;
+            details += `Meal Time: ${mealTime.charAt(0).toUpperCase() + mealTime.slice(1)}<br>`;
+            details += `Dose from table: ${doseInfo.dose} units`;
+            
+            document.getElementById('calculationDetails').innerHTML = details;
+            
+            let specialInstructions = '';
+            if (range === "<70") {
+                specialInstructions = '<div class="special-note" style="margin-top: 10px;"><strong>ACTION REQUIRED:</strong> Treat low blood sugar immediately with 15g fast-acting carbs. Recheck in 15 minutes.</div>';
+            }
+            document.getElementById('specialInstructions').innerHTML = specialInstructions;
+            
+            document.getElementById('timingNote').innerHTML = '<strong>Timing:</strong> Take 10-15 minutes before eating';
+            
+            // Show result
+            document.getElementById('result').classList.add('show');
+            
+            // Highlight the relevant table row
+            highlightTableRow(range, mealTime);
+        }
+
+        // Calculate forgotten dose
+        function calculateForgottenDose() {
+            const bloodSugar = parseInt(document.getElementById('forgottenBloodSugar').value);
+            const mealTime = document.getElementById('forgottenMealTime').value;
+            const forgottenTime = document.querySelector('input[name="forgottenTime"]:checked').value;
+            
+            if (!bloodSugar || bloodSugar < 20 || bloodSugar > 600) {
+                alert('Please enter a valid blood sugar reading between 20-600 mg/dL');
+                return;
+            }
+            
+            let dose = 0;
+            let details = '';
+            let specialInstructions = '';
+            
+            if (forgottenTime === 'during') {
+                // Base dose only (120-150 range)
+                const baseDoseInfo = humalogTable[mealTime]["120-150"];
+                dose = baseDoseInfo.dose;
+                
+                details = `<strong>FORGOTTEN DOSE - Realized during meal</strong><br>`;
+                details += `Blood Sugar: ${bloodSugar} mg/dL<br>`;
+                details += `Original Meal: ${mealTime.charAt(0).toUpperCase() + mealTime.slice(1)}<br>`;
+                details += `<strong>Take base dose only: ${dose} units</strong><br>`;
+                details += `(Base dose is the 120-150 reading dose for ${mealTime})`;
+                
+                specialInstructions = '<div class="special-note" style="margin-top: 10px;"><strong>Note:</strong> Since you realized during the meal, you only take the base dose, not the dose for your current blood sugar.</div>';
+                
+                document.getElementById('timingNote').innerHTML = '<strong>Timing:</strong> Take immediately (with your meal)';
+            } else {
+                // Correction scale (>1 hour after eating)
+                const range = getCorrectionRange(bloodSugar);
+                const correctionInfo = correctionScale[range];
+                dose = correctionInfo.dose;
+                
+                details = `<strong>FORGOTTEN DOSE - Realized >1 hour after eating</strong><br>`;
+                details += `Current Blood Sugar: ${bloodSugar} mg/dL (${range})<br>`;
+                details += `Original Meal: ${mealTime.charAt(0).toUpperCase() + mealTime.slice(1)}<br>`;
+                details += `Correction dose from scale: ${dose} units`;
+                
+                if (range === "<150") {
+                    specialInstructions = '<div class="special-note" style="margin-top: 10px;"><strong>Note:</strong> No correction needed. Monitor your blood sugar.</div>';
+                } else {
+                    specialInstructions = '<div class="special-note" style="margin-top: 10px;"><strong>Note:</strong> This is a correction dose only, not a meal dose.</div>';
+                }
+                
+                document.getElementById('timingNote').innerHTML = '<strong>Timing:</strong> Take immediately for correction';
+            }
+            
+            // Display result
+            document.getElementById('dosageAmount').textContent = `${dose} units`;
+            document.getElementById('calculationDetails').innerHTML = details;
+            document.getElementById('specialInstructions').innerHTML = specialInstructions;
+            
+            // Show result
+            document.getElementById('result').classList.add('show');
+        }
+
+        // Populate the main table
+        function populateMainTable() {
+            const tableBody = document.querySelector('#humalogTable tbody');
+            tableBody.innerHTML = '';
+            
+            const ranges = ["<70", "70-89", "90-119", "120-150", "151-200", "201-250", "251-300", "301-350", "351-400", ">400"];
+            
+            ranges.forEach(range => {
+                const row = document.createElement('tr');
+                row.id = `row-${range.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                
+                row.innerHTML = `
+                    <td>${range === "<70" ? "Less than 70" : range}</td>
+                    <td>${humalogTable.breakfast[range].dose} units${range === "<70" ? " & treat low sugar" : ""}</td>
+                    <td>${humalogTable.lunch[range].dose} units${range === "<70" ? " & treat low sugar" : ""}</td>
+                    <td>${humalogTable.dinner[range].dose} units${range === "<70" ? " & treat low sugar" : ""}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Populate correction table
+        function populateCorrectionTable() {
+            const tableBody = document.querySelector('#correctionTable tbody');
+            tableBody.innerHTML = '';
+            
+            const ranges = ["<150", "151-200", "201-250", "251-300", "301-350", "351-400", ">400"];
+            
+            ranges.forEach(range => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${range === "<150" ? "Less than 150" : range}</td>
+                    <td>${correctionScale[range].dose} units</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Highlight table row
+        function highlightTableRow(range, mealTime) {
+            // Remove previous highlights
+            document.querySelectorAll('#humalogTable tr').forEach(row => {
+                row.classList.remove('highlight');
+            });
+            
+            // Add highlight to current row
+            const rowId = `row-${range.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            const row = document.getElementById(rowId);
+            if (row) {
+                row.classList.add('highlight');
+                
+                // Scroll to the row
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved settings from localStorage
+            loadSavedSettings();
+            updateBasaglarDisplay();
+            
+            populateMainTable();
+            populateCorrectionTable();
+            
+            // Set today's date
+            const today = new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            document.querySelector('.footer p:last-child').innerHTML = 
+                `Protocol last updated: ${today}`;
+        });
+
+        // Add example values for demo
+        document.getElementById('bloodSugar').value = "180";
+        document.getElementById('forgottenBloodSugar').value = "220";
+    </script>
+</body>
+</html>

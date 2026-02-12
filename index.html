@@ -446,7 +446,135 @@
         .btn-success:hover {
             background: #218838;
         }
-        
+
+        /* ==================== FILE UPLOAD SECTION ==================== */
+        .upload-drop-zone {
+            border: 3px dashed #b8d4f0;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s, background 0.3s;
+            background: #f8fbff;
+        }
+
+        .upload-drop-zone:hover,
+        .upload-drop-zone.drag-over {
+            border-color: #4a6fa5;
+            background: #e8f4fd;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            font-weight: 600;
+            color: #2c4d7a;
+            margin-bottom: 5px;
+        }
+
+        .upload-formats {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .upload-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 8px;
+            margin-top: 15px;
+            color: #2c4d7a;
+            font-weight: 500;
+        }
+
+        .upload-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #b8d4f0;
+            border-top: 3px solid #4a6fa5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .upload-error {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            border-radius: 8px;
+            margin-top: 15px;
+            color: #721c24;
+            font-size: 14px;
+        }
+
+        .upload-preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #28a745;
+        }
+
+        .preview-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .preview-label {
+            font-weight: 600;
+            min-width: 160px;
+        }
+
+        .preview-input {
+            width: 80px;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .preview-confidence {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .preview-confidence.found {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .preview-confidence.not-found {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .preview-table-group {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .preview-table-group h5 {
+            color: #2c4d7a;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
         /* ==================== MOBILE RESPONSIVE - TABLET ==================== */
         @media (max-width: 768px) {
             body {
@@ -564,8 +692,21 @@
             .admin-actions .btn {
                 width: 100%;
             }
+
+            .upload-drop-zone {
+                padding: 20px 15px;
+            }
+
+            .upload-icon {
+                font-size: 32px;
+            }
+
+            .preview-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
-        
+
         /* ==================== MOBILE RESPONSIVE - PHONE ==================== */
         @media (max-width: 480px) {
             .header h1 {
@@ -836,7 +977,75 @@
             
             <!-- Admin Content (hidden until PIN verified) -->
             <div id="adminContent" class="admin-content">
-                
+
+                <!-- File Upload Section -->
+                <div class="admin-section">
+                    <h3>Import from File</h3>
+                    <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+                        Upload your doctor's insulin table (PDF, DOCX, or TXT) to auto-fill the values below.
+                    </p>
+
+                    <div id="uploadDropZone" class="upload-drop-zone">
+                        <div class="upload-icon">📁</div>
+                        <p class="upload-text">Drag & drop a file here, or click to browse</p>
+                        <p class="upload-formats">Supported: .pdf, .docx, .txt</p>
+                        <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display:none;">
+                    </div>
+
+                    <div id="uploadStatus" class="upload-status" style="display:none;">
+                        <div class="upload-spinner"></div>
+                        <span id="uploadStatusText">Reading file...</span>
+                    </div>
+
+                    <div id="uploadError" class="upload-error" style="display:none;">
+                        <strong>Could not parse file:&nbsp;</strong>
+                        <span id="uploadErrorText"></span>
+                        <button onclick="dismissUploadError()" style="margin-left:auto; cursor:pointer; background:none; border:none; font-size:18px; color:#721c24;">×</button>
+                    </div>
+
+                    <div id="uploadPreview" class="upload-preview" style="display:none;">
+                        <h4 style="margin-bottom:10px;">Review Parsed Values</h4>
+                        <p style="font-size:13px; color:#6c757d; margin-bottom:15px;">
+                            Verify the values below. Edit any incorrect values, then click Apply.
+                        </p>
+
+                        <div class="preview-group">
+                            <label class="preview-label">Basaglar Daily Dose:</label>
+                            <input type="number" id="preview-basaglar" class="preview-input" min="0" max="200">
+                            <span class="preview-confidence" id="conf-basaglar"></span>
+                        </div>
+
+                        <div class="preview-table-group">
+                            <h5>Breakfast</h5>
+                            <div class="dose-grid" id="previewBreakfastGrid"></div>
+                        </div>
+
+                        <div class="preview-table-group">
+                            <h5>Lunch</h5>
+                            <div class="dose-grid" id="previewLunchGrid"></div>
+                        </div>
+
+                        <div class="preview-table-group">
+                            <h5>Dinner</h5>
+                            <div class="dose-grid" id="previewDinnerGrid"></div>
+                        </div>
+
+                        <div class="preview-table-group">
+                            <h5>Correction Scale</h5>
+                            <div class="dose-grid" id="previewCorrectionGrid"></div>
+                        </div>
+
+                        <div style="display:flex; gap:10px; margin-top:15px; flex-wrap:wrap;">
+                            <button class="btn btn-success" onclick="applyParsedValues()" style="flex:1; min-width:140px;">
+                                Apply Values
+                            </button>
+                            <button class="btn btn-secondary" onclick="cancelUploadPreview()" style="flex:1; min-width:140px;">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Basaglar Section -->
                 <div class="admin-section">
                     <h3>📌 Basaglar (Long-Acting) Daily Dose</h3>
@@ -1236,6 +1445,456 @@
             }
         }
 
+        // ==================== LAZY SCRIPT LOADER ====================
+        const loadedScripts = {};
+
+        function loadScript(url) {
+            if (loadedScripts[url]) return loadedScripts[url];
+            loadedScripts[url] = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = url;
+                script.onload = resolve;
+                script.onerror = () => reject(new Error('Failed to load library. Check your internet connection.'));
+                document.head.appendChild(script);
+            });
+            return loadedScripts[url];
+        }
+
+        // ==================== FILE UPLOAD ====================
+        function initUploadHandlers() {
+            const dropZone = document.getElementById('uploadDropZone');
+            const fileInput = document.getElementById('fileInput');
+            if (!dropZone || !fileInput) return;
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) handleFileUpload(e.target.files[0]);
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                if (e.dataTransfer.files.length > 0) handleFileUpload(e.dataTransfer.files[0]);
+            });
+        }
+
+        async function handleFileUpload(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const validTypes = ['pdf', 'docx', 'txt'];
+
+            if (!validTypes.includes(ext)) {
+                showUploadError('Unsupported file type. Please use .pdf, .docx, or .txt files.');
+                return;
+            }
+
+            showUploadStatus('Reading file...');
+            hideUploadError();
+            hideUploadPreview();
+
+            try {
+                let text = '';
+
+                if (ext === 'txt') {
+                    text = await readTextFile(file);
+                } else if (ext === 'pdf') {
+                    showUploadStatus('Loading PDF library...');
+                    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+                    pdfjsLib.GlobalWorkerOptions.workerSrc =
+                        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    showUploadStatus('Extracting text from PDF...');
+                    text = await readPdfFile(file);
+                } else if (ext === 'docx') {
+                    showUploadStatus('Loading DOCX library...');
+                    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js');
+                    showUploadStatus('Extracting text from document...');
+                    text = await readDocxFile(file);
+                }
+
+                if (!text || text.trim().length < 10) {
+                    showUploadError('The file appears to be empty or could not be read. Try a different format.');
+                    hideUploadStatus();
+                    return;
+                }
+
+                showUploadStatus('Parsing insulin data...');
+                const parsed = parseInsulinData(text);
+
+                hideUploadStatus();
+                showUploadPreview(parsed);
+
+            } catch (err) {
+                hideUploadStatus();
+                showUploadError('Error processing file: ' + err.message);
+                console.error('File upload error:', err);
+            }
+        }
+
+        // ---------- File Readers ----------
+        function readTextFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('Could not read text file'));
+                reader.readAsText(file);
+            });
+        }
+
+        async function readPdfFile(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const pageText = content.items.map(item => item.str).join(' ');
+                fullText += pageText + '\n';
+            }
+            return fullText;
+        }
+
+        async function readDocxFile(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+            return result.value;
+        }
+
+        // ---------- UI Helpers ----------
+        function showUploadStatus(message) {
+            const el = document.getElementById('uploadStatus');
+            document.getElementById('uploadStatusText').textContent = message;
+            el.style.display = 'flex';
+        }
+
+        function hideUploadStatus() {
+            document.getElementById('uploadStatus').style.display = 'none';
+        }
+
+        function showUploadError(message) {
+            const el = document.getElementById('uploadError');
+            document.getElementById('uploadErrorText').textContent = message;
+            el.style.display = 'flex';
+        }
+
+        function hideUploadError() {
+            document.getElementById('uploadError').style.display = 'none';
+        }
+
+        function dismissUploadError() {
+            hideUploadError();
+        }
+
+        function hideUploadPreview() {
+            document.getElementById('uploadPreview').style.display = 'none';
+        }
+
+        // ==================== PARSING ENGINE ====================
+        function parseInsulinData(text) {
+            // Normalize text: collapse whitespace, normalize dashes
+            const normalized = text
+                .replace(/[\u2013\u2014]/g, '-')
+                .replace(/[""]/g, '"')
+                .replace(/['']/g, "'");
+
+            const result = {
+                basaglar: { value: null, found: false },
+                meals: { breakfast: {}, lunch: {}, dinner: {} },
+                correction: {},
+                mealsFound: false,
+                correctionFound: false
+            };
+
+            // Pass 1: Extract Basaglar dose
+            extractBasaglar(normalized, result);
+
+            // Pass 2: Try table-format parsing (range followed by 3 numbers)
+            tryParseTableFormat(normalized, result);
+
+            // Pass 3: Fallback line-by-line parsing
+            if (!result.mealsFound) {
+                tryParseLineByLine(text, result);
+            }
+
+            // Pass 4: Extract correction scale
+            if (!result.correctionFound) {
+                tryParseCorrectionScale(text, result);
+            }
+
+            // Fill missing ranges with current values
+            fillMissingWithCurrent(result);
+
+            return result;
+        }
+
+        function extractBasaglar(text, result) {
+            const patterns = [
+                /basaglar[:\s]+(\d{1,3})\s*(?:units?)?/i,
+                /basal[:\s]+(\d{1,3})\s*(?:units?)?/i,
+                /long[\s-]*acting[:\s]+(\d{1,3})\s*(?:units?)?/i,
+                /glargine[:\s]+(\d{1,3})\s*(?:units?)?/i,
+                /lantus[:\s]+(\d{1,3})\s*(?:units?)?/i
+            ];
+            for (const pattern of patterns) {
+                const match = text.match(pattern);
+                if (match) {
+                    result.basaglar.value = parseInt(match[1]);
+                    result.basaglar.found = true;
+                    return;
+                }
+            }
+        }
+
+        function tryParseTableFormat(text, result) {
+            const rangePatterns = [
+                { key: '<70',      regex: /(?:less\s*than\s*70|<\s*70|under\s*70|below\s*70)/i },
+                { key: '70-89',    regex: /70\s*[-\u2013]\s*89/i },
+                { key: '90-119',   regex: /90\s*[-\u2013]\s*119/i },
+                { key: '120-150',  regex: /120\s*[-\u2013]\s*150/i },
+                { key: '151-200',  regex: /151\s*[-\u2013]\s*200/i },
+                { key: '201-250',  regex: /201\s*[-\u2013]\s*250/i },
+                { key: '251-300',  regex: /251\s*[-\u2013]\s*300/i },
+                { key: '301-350',  regex: /301\s*[-\u2013]\s*350/i },
+                { key: '351-400',  regex: /351\s*[-\u2013]\s*400/i },
+                { key: '>400',     regex: /(?:greater\s*than\s*400|>\s*400|over\s*400|above\s*400)/i }
+            ];
+
+            let foundCount = 0;
+
+            for (const rp of rangePatterns) {
+                // After the range text, grab the next 3 numbers (breakfast, lunch, dinner)
+                const fullRegex = new RegExp(
+                    rp.regex.source + '[^\\d]*?(\\d{1,3})[^\\d]+(\\d{1,3})[^\\d]+(\\d{1,3})',
+                    'i'
+                );
+                const match = text.match(fullRegex);
+                if (match) {
+                    result.meals.breakfast[rp.key] = parseInt(match[1]);
+                    result.meals.lunch[rp.key] = parseInt(match[2]);
+                    result.meals.dinner[rp.key] = parseInt(match[3]);
+                    foundCount++;
+                }
+            }
+
+            if (foundCount >= 3) {
+                result.mealsFound = true;
+            }
+        }
+
+        function tryParseLineByLine(text, result) {
+            const lines = text.split(/\n/);
+            let currentMeal = null;
+            let foundCount = 0;
+
+            const mealHeaderRegex = /\b(breakfast|lunch|dinner)\b/i;
+            const rangeDoseRegex = /(\d{2,3})\s*[-\u2013]\s*(\d{2,3})\s*[:\s]+(\d{1,3})/;
+            const lessThanRegex = /(?:less\s*than|<|under|below)\s*(\d{2,3})\s*[:\s]+(\d{1,3})/i;
+            const greaterThanRegex = /(?:greater\s*than|>|over|above)\s*(\d{2,3})\s*[:\s]+(\d{1,3})/i;
+
+            for (const line of lines) {
+                const mealMatch = line.match(mealHeaderRegex);
+                if (mealMatch) {
+                    currentMeal = mealMatch[1].toLowerCase();
+                    continue;
+                }
+
+                if (!currentMeal) continue;
+
+                let rangeKey = null;
+                let dose = null;
+
+                const rdMatch = line.match(rangeDoseRegex);
+                if (rdMatch) {
+                    rangeKey = `${rdMatch[1]}-${rdMatch[2]}`;
+                    dose = parseInt(rdMatch[3]);
+                }
+
+                const ltMatch = line.match(lessThanRegex);
+                if (ltMatch) {
+                    rangeKey = `<${ltMatch[1]}`;
+                    dose = parseInt(ltMatch[2]);
+                }
+
+                const gtMatch = line.match(greaterThanRegex);
+                if (gtMatch) {
+                    rangeKey = `>${gtMatch[1]}`;
+                    dose = parseInt(gtMatch[2]);
+                }
+
+                if (rangeKey && dose !== null && mealRanges.includes(rangeKey)) {
+                    result.meals[currentMeal][rangeKey] = dose;
+                    foundCount++;
+                }
+            }
+
+            if (foundCount >= 3) {
+                result.mealsFound = true;
+            }
+        }
+
+        function tryParseCorrectionScale(text, result) {
+            const correctionSectionRegex = /correction\s*(?:scale|dose|factor)/i;
+            const correctionIdx = text.search(correctionSectionRegex);
+            const searchText = correctionIdx >= 0 ? text.substring(correctionIdx) : text;
+
+            const corrPatterns = [
+                { key: '<150',     regex: /(?:less\s*than\s*150|<\s*150|under\s*150|below\s*150)/i },
+                { key: '151-200',  regex: /151\s*[-\u2013]\s*200/i },
+                { key: '201-250',  regex: /201\s*[-\u2013]\s*250/i },
+                { key: '251-300',  regex: /251\s*[-\u2013]\s*300/i },
+                { key: '301-350',  regex: /301\s*[-\u2013]\s*350/i },
+                { key: '351-400',  regex: /351\s*[-\u2013]\s*400/i },
+                { key: '>400',     regex: /(?:greater\s*than\s*400|>\s*400|over\s*400|above\s*400)/i }
+            ];
+
+            let foundCount = 0;
+
+            for (const cp of corrPatterns) {
+                const fullRegex = new RegExp(
+                    cp.regex.source + '[^\\d]*?(\\d{1,3})',
+                    'i'
+                );
+                const match = searchText.match(fullRegex);
+                if (match) {
+                    result.correction[cp.key] = parseInt(match[1]);
+                    foundCount++;
+                }
+            }
+
+            if (foundCount >= 3) {
+                result.correctionFound = true;
+            }
+        }
+
+        function fillMissingWithCurrent(result) {
+            if (!result.basaglar.found) {
+                result.basaglar.value = basaglarDose;
+            }
+
+            ['breakfast', 'lunch', 'dinner'].forEach(meal => {
+                mealRanges.forEach(range => {
+                    if (result.meals[meal][range] === undefined) {
+                        result.meals[meal][range] = humalogTable[meal][range];
+                    }
+                });
+            });
+
+            correctionRanges.forEach(range => {
+                if (result.correction[range] === undefined) {
+                    result.correction[range] = correctionScale[range];
+                }
+            });
+        }
+
+        // ==================== UPLOAD PREVIEW & APPLY ====================
+        function showUploadPreview(parsed) {
+            const container = document.getElementById('uploadPreview');
+
+            // Basaglar
+            document.getElementById('preview-basaglar').value = parsed.basaglar.value;
+            document.getElementById('conf-basaglar').textContent =
+                parsed.basaglar.found ? 'parsed' : 'unchanged';
+            document.getElementById('conf-basaglar').className =
+                'preview-confidence ' + (parsed.basaglar.found ? 'found' : 'not-found');
+
+            // Meal grids
+            ['breakfast', 'lunch', 'dinner'].forEach(meal => {
+                const gridId = `preview${meal.charAt(0).toUpperCase() + meal.slice(1)}Grid`;
+                const grid = document.getElementById(gridId);
+                grid.innerHTML = '';
+
+                mealRanges.forEach(range => {
+                    const div = document.createElement('div');
+                    div.className = 'dose-item';
+                    const inputId = `preview-${meal}-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
+                    const wasParsed = parsed.mealsFound &&
+                        parsed.meals[meal][range] !== humalogTable[meal][range];
+
+                    div.innerHTML = `
+                        <label>${range}:</label>
+                        <input type="number" id="${inputId}" min="0" max="100"
+                               value="${parsed.meals[meal][range]}"
+                               ${wasParsed ? 'style="border-color:#28a745; background:#f0fff0;"' : ''}>
+                    `;
+                    grid.appendChild(div);
+                });
+            });
+
+            // Correction grid
+            const corrGrid = document.getElementById('previewCorrectionGrid');
+            corrGrid.innerHTML = '';
+
+            correctionRanges.forEach(range => {
+                const div = document.createElement('div');
+                div.className = 'dose-item';
+                const inputId = `preview-corr-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
+                const wasParsed = parsed.correctionFound &&
+                    parsed.correction[range] !== correctionScale[range];
+
+                div.innerHTML = `
+                    <label>${range}:</label>
+                    <input type="number" id="${inputId}" min="0" max="100"
+                           value="${parsed.correction[range]}"
+                           ${wasParsed ? 'style="border-color:#28a745; background:#f0fff0;"' : ''}>
+                `;
+                corrGrid.appendChild(div);
+            });
+
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function applyParsedValues() {
+            // Copy preview values into the existing admin input fields
+            document.getElementById('adminBasaglar').value =
+                document.getElementById('preview-basaglar').value;
+
+            ['breakfast', 'lunch', 'dinner'].forEach(meal => {
+                mealRanges.forEach(range => {
+                    const previewId = `preview-${meal}-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
+                    const adminId = `admin-${meal}-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
+                    const previewEl = document.getElementById(previewId);
+                    const adminEl = document.getElementById(adminId);
+                    if (previewEl && adminEl) {
+                        adminEl.value = previewEl.value;
+                    }
+                });
+            });
+
+            correctionRanges.forEach(range => {
+                const previewId = `preview-corr-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
+                const adminId = `admin-corr-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
+                const previewEl = document.getElementById(previewId);
+                const adminEl = document.getElementById(adminId);
+                if (previewEl && adminEl) {
+                    adminEl.value = previewEl.value;
+                }
+            });
+
+            hideUploadPreview();
+            document.getElementById('fileInput').value = '';
+
+            // Scroll to the admin fields
+            document.getElementById('adminBasaglar').scrollIntoView({
+                behavior: 'smooth', block: 'start'
+            });
+
+            alert('Values applied to the form below. Review them and click "Save Changes" when ready.');
+        }
+
+        function cancelUploadPreview() {
+            hideUploadPreview();
+            document.getElementById('fileInput').value = '';
+        }
+
         // ==================== LOAD/UPDATE FUNCTIONS ====================
         function loadSettings() {
             // Load from localStorage or use defaults
@@ -1289,6 +1948,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadSettings();
             updateDisplay();
+            initUploadHandlers();
         });
 
         // Close admin panel when clicking outside

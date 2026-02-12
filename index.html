@@ -1853,41 +1853,41 @@
         }
 
         function applyParsedValues() {
-            // Copy preview values into the existing admin input fields
-            document.getElementById('adminBasaglar').value =
-                document.getElementById('preview-basaglar').value;
+            // Read values from preview and save directly to app data
+            basaglarDose = parseInt(document.getElementById('preview-basaglar').value) || basaglarDose;
 
             ['breakfast', 'lunch', 'dinner'].forEach(meal => {
                 mealRanges.forEach(range => {
                     const previewId = `preview-${meal}-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
-                    const adminId = `admin-${meal}-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
                     const previewEl = document.getElementById(previewId);
-                    const adminEl = document.getElementById(adminId);
-                    if (previewEl && adminEl) {
-                        adminEl.value = previewEl.value;
+                    if (previewEl) {
+                        humalogTable[meal][range] = parseInt(previewEl.value) || 0;
                     }
                 });
             });
 
             correctionRanges.forEach(range => {
                 const previewId = `preview-corr-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
-                const adminId = `admin-corr-${range.replace(/[^a-zA-Z0-9]/g, '')}`;
                 const previewEl = document.getElementById(previewId);
-                const adminEl = document.getElementById(adminId);
-                if (previewEl && adminEl) {
-                    adminEl.value = previewEl.value;
+                if (previewEl) {
+                    correctionScale[range] = parseInt(previewEl.value) || 0;
                 }
             });
+
+            // Save to localStorage
+            localStorage.setItem('insulinCalc_basaglar', basaglarDose);
+            localStorage.setItem('insulinCalc_humalog', JSON.stringify(humalogTable));
+            localStorage.setItem('insulinCalc_correction', JSON.stringify(correctionScale));
+            localStorage.setItem('insulinCalc_lastUpdated', new Date().toISOString());
+
+            // Update the main display
+            updateDisplay();
 
             hideUploadPreview();
             document.getElementById('fileInput').value = '';
 
-            // Scroll to the admin fields
-            document.getElementById('adminBasaglar').scrollIntoView({
-                behavior: 'smooth', block: 'start'
-            });
-
-            alert('Values applied to the form below. Review them and click "Save Changes" when ready.');
+            alert('Settings updated from file successfully!');
+            closeAdminPanel();
         }
 
         function cancelUploadPreview() {
